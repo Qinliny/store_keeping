@@ -205,6 +205,72 @@ class IndexController extends BaseController
         successAjax("添加成功");
     }
 
+    public function getSizeInfo() {
+        $sizeId = request()->post('sizeId');
+        $info = SizeDb::getSizeInfoById($sizeId);
+        if (empty($info)) {
+            failedAjax(__LINE__, "数据不存在");
+        }
+        successAjax("获取成功", $info);
+    }
+
+    public function editSize() {
+        $param = request()->post();
+        // 校验数据
+        $this->validate($param, [
+            'id'        =>  'require|integer',
+            'nameId'  =>  'require|integer',
+            'modelNameId'   =>  'require|integer',
+            'size_width'    =>   'require|float',
+            'size_height'   =>  'require|float',
+            'size_number'   =>  'integer',
+            'size_value'    =>  'float'
+        ], [
+            'id.require'  =>  '数据异常',
+            'id.integer'  =>  '数据异常',
+            'nameId.require'  =>  '请选择名称',
+            'nameId.integer'  =>  '请选择名称',
+            'modelNameId.require'    =>  '请选择型号',
+            'modelNameId.integer'    =>  '请选择型号',
+            'size_width.require'    =>  '请输入规格宽度',
+            'size_width.float'  =>  '规格宽度数值必须为整数或者小数',
+            'size_height.require'    =>  '请输入规格长度',
+            'size_height.float'  =>  '规格长度数值必须为整数或者小数',
+            'size_number.integer'   =>  '主线直径数只能为整数',
+            'size_value.float'      =>  '主线直径值必须为整数或者小数'
+        ]);
+
+        // 判断数据是否存在
+        $sizeInfo = SizeDb::getSizeInfoById($param['id']);
+        if (empty($sizeInfo)) {
+            failedAjax(__LINE__, "数据不存在");
+        }
+
+        // 查询名称是否存在
+        $queryInfo = NameDb::findNameById($param['nameId']);
+        if (empty($queryInfo)) {
+            failedAjax(__LINE__, "名称不存在");
+        }
+
+        // 查询型号是否存在
+        $info = ModelNameBb::findModelNameById($param['modelNameId']);
+        if (empty($info)) {
+            failedAjax(__LINE__, "型号数据不存在");
+        }
+
+        // 添加数据
+        $data = [
+            'nameId'    =>  $param['nameId'],
+            'modelId'   =>  $param['modelNameId'],
+            'size_height'   =>  $param['size_height'],
+            'size_width'    =>  $param['size_width'],
+            'size_number'   =>  $param['size_number'],
+            'size_value'    =>  $param['size_value']
+        ];
+        SizeDb::updateSizeDataById($param['id'], $data);
+        successAjax("修改成功");
+    }
+
     public function material() {
         $param = request()->get();
         $page = isset($param['page']) && $param['page'] > 0 ? $param['page'] : 1;

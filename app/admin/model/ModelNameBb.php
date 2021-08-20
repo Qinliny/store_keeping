@@ -42,4 +42,8 @@ class ModelNameBb
             'model_name'    =>  $modelName
         ]);
     }
+
+    public static function getModelListByNameId($nameId) {
+        return Db::table(self::$table)->where('nameId', $nameId)->select();
+    }
 }

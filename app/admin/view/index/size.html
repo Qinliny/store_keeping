@@ -150,37 +150,53 @@
 
         $('.edit').on('click', function() {
             let id = $(this).attr('value')
-            let name = $(this).attr('name')
-            let element = $('.alertBox').html();
-
-            layer.open({
-                title: "修改名称",
-                type: 1,
-                skin: 'layui-layer-demo', //样式类名
-                closeBtn: 1,
-                anim: 2,
-                shadeClose: false,
-                content: element,
-                success: function() {
-                    form.render()
-                    $('.layui-layer-content').find('input[name="name"]').val(name)
-
-                    form.on('submit(submit)', function(obj) {
-                        obj.field.id = id
-                        $.post('/admin/editName', obj.field, function(resp){
-                            if (resp.code != 0) {
-                                layer.msg(resp.errors, {icon: 5})
-                                return
-                            } else {
-                                layer.closeAll()
-                                layer.msg("修改成功", {time: 1500, end: function(){
-                                        location.reload();
-                                    }});
-                            }
-                        });
-                    })
-                }
+            let loadding = layer.load(1, {
+                shade: [0.3,'#000'] //0.1透明度的白色背景
             });
+            $.post('/admin/size/getSizeInfo', {'sizeId': id}, function(resp) {
+                layer.closeAll()
+                if (resp.code != 0) {
+                    layer.msg(resp.errors, {icon: 5})
+                    return false
+                }
+                let element = $('.alertBox').html();
+                layer.open({
+                    title: "修改规格信息",
+                    type: 1,
+                    skin: 'layui-layer-demo', //样式类名
+                    closeBtn: 1,
+                    anim: 2,
+                    shadeClose: false,
+                    content: element,
+                    success: function() {
+                        $('.layui-layer-content').find('.layui-form').attr('lay-filter', "editForm")
+                        let data = resp.data
+                        form.val("editForm", {
+                            "nameId": data.nameId,
+                            "modelNameId": data.modelId,
+                            "size_height": data.size_height,
+                            "size_width": data.size_width,
+                            "size_number": data.size_number,
+                            "size_value": data.size_value
+                        })
+                        form.render()
+                        form.on('submit(submit)', function(obj) {
+                            obj.field.id = id
+                            $.post('/admin/size/editSize', obj.field, function(resp){
+                                if (resp.code != 0) {
+                                    layer.msg(resp.errors, {icon: 5})
+                                    return
+                                } else {
+                                    layer.closeAll()
+                                    layer.msg("修改成功", {time: 1500, end: function(){
+                                            location.reload();
+                                        }});
+                                }
+                            });
+                        })
+                    }
+                });
+            })
         })
 
     });

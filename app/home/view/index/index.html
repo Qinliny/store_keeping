@@ -47,7 +47,7 @@
     </style>
 </head>
 <body>
-    <div id="app">
+    <div id="app" v-loading="loading">
         <header>
             <img src="http://buysell-image-1.oss-cn-beijing.aliyuncs.com/upload/image/三信电气2_354108.jpg" alt="">
         </header>
@@ -55,21 +55,20 @@
         <main style="box-sizing: border-box;padding: 10px 15px">
             <el-form ref="form" :model="form" class="top-form">
                 <el-form-item label="名称">
-                    <el-select v-model="form.region" placeholder="请选择名称" >
-                        <el-option label="区域一" value="shanghai"></el-option>
-                        <el-option label="区域二" value="beijing"></el-option>
+                    <el-select v-model="form.nameId" placeholder="请选择名称" @change="getModel" >
+                        {foreach $nameList as $key => $value}
+                        <el-option label="{$value.name}" value="{$value.id}"></el-option>
+                        {/foreach}
                     </el-select>
                 </el-form-item>
                 <el-form-item label="型号">
-                    <el-select v-model="form.region" placeholder="请选择型号" :disabled="true">
-                        <el-option label="区域一" value="shanghai"></el-option>
-                        <el-option label="区域二" value="beijing"></el-option>
+                    <el-select v-model="form.modelId" placeholder="请选择型号" @change="getSizeList" :disabled="modelSelect">
+                        <el-option v-for="item in modelList" :label="item.model_name" :value="item.id"></el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item label="规格">
-                    <el-select v-model="form.region" placeholder="请选择规格" :disabled="true">
-                        <el-option label="区域一" value="shanghai"></el-option>
-                        <el-option label="区域二" value="beijing"></el-option>
+                    <el-select v-model="form.sizeId" placeholder="请选择规格" :disabled="sizeSelect">
+                        <el-option v-for="item in sizeList" :label="item | getSize" :value="item.id"></el-option>
                     </el-select>
                 </el-form-item>
             </el-form>
@@ -81,9 +80,7 @@
                 <el-table-column prop="name" label="小计（元/千米）"></el-table-column>
             </el-table>
 
-            <el-divider></el-divider>
-
-            <el-form class="bottom-form">
+            <el-form class="bottom-form" style="margin-top: 15px">
                 <el-form-item label="成本">
                     <el-input v-model="input" placeholder="" :disabled="true"></el-input>
                 </el-form-item>
@@ -104,18 +101,60 @@
 </html>
 <script src="__STATIC__/home/js/vue.js"></script>
 <script src="__STATIC__/home/js/elementUi.js"></script>
+<script src="__STATIC__/home/js/jquery.js"></script>
 <script>
-
-    var app = new Vue({
+    let vm =  new Vue({
         el: '#app',
-        data: {
+        data:  {
             form: {
-                region: ""
+                nameId: "",
+                modelId: "",
+                sizeId: ""
             },
-            input: ""
+            modelSelect: true,
+            modelList: [],
+            sizeSelect: true,
+            sizeList: [],
+            input: "",
+            loading: false
         },
-        create() {
-            console.log(1)
+        methods: {
+            getModel: function(value) {
+                let _this = this
+                this.modelSelect = true
+                this.modelList = []
+                this.sizeSelect = true
+                this.loading = true
+                this.form.modelId = ""
+                this.form.sizeId = ""
+                $.post('/home/getModelList', {nameId: value}, function(resp) {
+                    if (resp.code == 0) {
+                        _this.loading = false
+                        _this.modelSelect = false
+                        _this.modelList = resp.data
+                    }
+                })
+            },
+            getSizeList: function(value) {
+                let _this = this
+                this.sizeSelect = true
+                this.sizeList = []
+                this.form.sizeId = ""
+                this.loading = true
+                $.post('/home/getSizeList', {modelId: value, nameId: this.form.nameId}, function(resp) {
+                    if (resp.code == 0) {
+                        _this.loading = false
+                        _this.sizeSelect = false
+                        _this.sizeList = resp.data
+                    }
+                })
+            }
+        },
+        filters: {
+            getSize(value) {
+                console.log(1)
+                return value.size_height + "×" + value.size_width
+            }
         }
     })
 </script>
