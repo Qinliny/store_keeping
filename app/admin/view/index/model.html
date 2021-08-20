@@ -38,7 +38,7 @@
                     <td>{$value.create_time}</td>
                     <td>
                         <div class="layui-btn-group">
-                            <button type="button" class="layui-btn layui-btn-sm edit" value="{$value.id}" name="{$value.name}">编辑</button>
+                            <button type="button" class="layui-btn layui-btn-sm edit" value="{$value.id}" model_name="{$value.model_name}" nameId="{$value.nameId}">编辑</button>
                             <button type="button" class="layui-btn layui-btn-sm layui-btn-danger">删除</button>
                         </div>
                     </td>
@@ -129,7 +129,8 @@
 
         $('.edit').on('click', function() {
             let id = $(this).attr('value')
-            let name = $(this).attr('name')
+            let nameId = $(this).attr('nameId')
+            let model_name = $(this).attr('model_name')
             let element = $('.alertBox').html();
 
             layer.open({
@@ -141,9 +142,12 @@
                 shadeClose: false,
                 content: element,
                 success: function() {
-
-                    $('.layui-layer-content').find('input[name="name"]').val(name)
-
+                    $('.layui-layer-content').find('.layui-form').attr('lay-filter', "editForm")
+                    form.val("editForm", {
+                        "name": nameId,
+                        "model_name": model_name
+                    })
+                    form.render()
                     form.on('submit(submit)', function(obj) {
                         obj.field.id = id
                         $.post('/admin/editName', obj.field, function(resp){

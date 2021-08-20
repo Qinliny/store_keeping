@@ -19,7 +19,11 @@ class ModelNameBb
     }
 
     public static function findModelNameById($id) {
-        return Db::table(self::$table)->where('id', $id)->find();
+        return Db::table(self::$table)->alias('a')
+            ->join('name b', 'a.nameId = b.id')
+            ->field('b.name, a.*')
+            ->where('a.id', $id)
+            ->find();
     }
 
     public static function getModelNameList($page, $limit) {
