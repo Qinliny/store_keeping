@@ -36,11 +36,11 @@
         <div class="layui-side-scroll">
             <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
             <ul class="layui-nav layui-nav-tree" lay-filter="test">
-                <li class="layui-nav-item">
-                    <a href="javascript:;">名称管理</a>
+                <li class="layui-nav-item {if condition="$item == 'name'"}layui-this{/if}">
+                    <a href="/admin">名称管理</a>
                 </li>
-                <li class="layui-nav-item">
-                    <a href="">型号管理</a>
+                <li class="layui-nav-item {if condition="$item == 'model'"}layui-this{/if}">
+                    <a href="admin/model">型号管理</a>
                 </li>
                 <li class="layui-nav-item">
                     <a href="">规格管理</a>
