@@ -1,0 +1,152 @@
+{extend name="common/public" /}
+
+{block name="title"}
+名称管理
+{/block}
+
+
+{block name="content"}
+<span class="layui-breadcrumb">
+  <a href="">后台管理系统</a>
+  <a><cite>名称管理</cite></a>
+</span>
+
+<div class="content" style="margin-top: 20px">
+    <div class="layui-card">
+        <div class="layui-card-header">
+            <button type="button" class="layui-btn layui-btn-sm" id="add">
+                添加名称
+            </button>
+        </div>
+        <div class="layui-card-body">
+            <table class="layui-table">
+                <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>名称</th>
+                        <th>添加时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {foreach $list as $key => $value}
+                <tr>
+                    <td>{$key+1}</td>
+                    <td>{$value.name}</td>
+                    <td>{$value.create_time}</td>
+                    <td>
+                        <div class="layui-btn-group">
+                            <button type="button" class="layui-btn layui-btn-sm edit" value="{$value.id}" name="{$value.name}">编辑</button>
+                            <button type="button" class="layui-btn layui-btn-sm layui-btn-danger">删除</button>
+                        </div>
+                    </td>
+                </tr>
+                {/foreach}
+                </tbody>
+            </table>
+            <div id="page"></div>
+        </div>
+    </div>
+</div>
+
+
+<div class="alertBox" style="display: none">
+    <div class="layui-form" style="padding: 15px">
+        <div class="layui-form-item">
+            <label class="layui-form-label">名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" required  lay-verify="required" placeholder="请输入名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="submit">立即提交</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+    layui.use(['layer', 'form', 'laypage'], function(){
+        let layer = layui.layer, form = layui.form, $ = layui.$, laypage = layui.laypage;
+
+        laypage.render({
+            elem: 'page'
+            ,count: {$count}
+            ,limit: {$limit}
+            ,curr: {$page}
+            ,jump: function(obj, first) {
+                if(!first){
+                    window.location.href = "/admin/index?page=" + obj.curr + "&limit=" + obj.limit
+                }
+            }
+        });
+
+        $('#add').on('click', function(){
+            let element = $('.alertBox').html();
+            layer.open({
+                title: "添加名称",
+                type: 1,
+                skin: 'layui-layer-demo', //样式类名
+                closeBtn: 1,
+                anim: 2,
+                shadeClose: false,
+                content: element,
+                success: function() {
+                    form.on('submit(submit)', function(obj) {
+                        $.post('/admin/addName', obj.field, function(resp){
+                            if (resp.code != 0) {
+                                layer.msg(resp.errors, {icon: 5})
+                                return
+                            } else {
+                                layer.closeAll()
+                                layer.msg("添加成功", {time: 1500, end: function(){
+                                    location.reload();
+                                    }});
+                            }
+                        });
+                    })
+                }
+            });
+        })
+
+        $('.edit').on('click', function() {
+            let id = $(this).attr('value')
+            let name = $(this).attr('name')
+            let element = $('.alertBox').html();
+
+            layer.open({
+                title: "修改名称",
+                type: 1,
+                skin: 'layui-layer-demo', //样式类名
+                closeBtn: 1,
+                anim: 2,
+                shadeClose: false,
+                content: element,
+                success: function() {
+
+                    $('.layui-layer-content').find('input[name="name"]').val(name)
+
+                    form.on('submit(submit)', function(obj) {
+                        obj.field.id = id
+                        $.post('/admin/editName', obj.field, function(resp){
+                            if (resp.code != 0) {
+                                layer.msg(resp.errors, {icon: 5})
+                                return
+                            } else {
+                                layer.closeAll()
+                                layer.msg("修改成功", {time: 1500, end: function(){
+                                        location.reload();
+                                }});
+                            }
+                        });
+                    })
+                }
+            });
+        })
+
+    });
+</script>
+{/block}

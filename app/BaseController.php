@@ -38,7 +38,7 @@ abstract class BaseController
 
     /**
      * 构造方法
-     * @access public
+     * @access common
      * @param  App  $app  应用对象
      */
     public function __construct(App $app)
