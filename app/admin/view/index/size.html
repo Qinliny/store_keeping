@@ -1,21 +1,21 @@
 {extend name="common/public" /}
 
 {block name="title"}
-型号管理
+规格管理
 {/block}
 
 
 {block name="content"}
 <span class="layui-breadcrumb">
   <a href="">后台管理系统</a>
-  <a><cite>型号管理</cite></a>
+  <a><cite>规格管理</cite></a>
 </span>
 
 <div class="content" style="margin-top: 20px">
     <div class="layui-card">
         <div class="layui-card-header">
             <button type="button" class="layui-btn layui-btn-sm" id="add">
-                添加型号
+                添加规格信息
             </button>
         </div>
         <div class="layui-card-body">
@@ -24,7 +24,10 @@
                 <tr>
                     <th>序号</th>
                     <th>名称</th>
-                    <th>型号名称</th>
+                    <th>型号</th>
+                    <th>规格</th>
+                    <th>主线直径数</th>
+                    <th>主线直径</th>
                     <th>添加时间</th>
                     <th>操作</th>
                 </tr>
@@ -35,10 +38,15 @@
                     <td>{$key+1}</td>
                     <td>{$value.name}</td>
                     <td>{$value.model_name}</td>
+                    <td>
+                        {$value.size_height}×{$value.size_width}
+                    </td>
+                    <td>{$value.size_number|default=0}</td>
+                    <td>{$value.size_value|default=0}</td>
                     <td>{$value.create_time}</td>
                     <td>
                         <div class="layui-btn-group">
-                            <button type="button" class="layui-btn layui-btn-sm edit" value="{$value.id}" model_name="{$value.model_name}" nameId="{$value.nameId}">编辑</button>
+                            <button type="button" class="layui-btn layui-btn-sm edit" value="{$value.id}">编辑</button>
                             <button type="button" class="layui-btn layui-btn-sm layui-btn-danger">删除</button>
                         </div>
                     </td>
@@ -57,7 +65,7 @@
         <div class="layui-form-item">
             <label class="layui-form-label">名称</label>
             <div class="layui-input-block">
-                <select name="name" lay-verify="required">
+                <select name="nameId" lay-verify="required">
                     <option value="">请选择材料名称</option>
                     {foreach $nameList as $key => $val}
                     <option value="{$val.id}">{$val.name}</option>
@@ -66,9 +74,34 @@
             </div>
         </div>
         <div class="layui-form-item">
-            <label class="layui-form-label">型号名称</label>
+            <label class="layui-form-label">型号</label>
             <div class="layui-input-block">
-                <input type="text" name="model_name" required  lay-verify="required" placeholder="请输入名称" autocomplete="off" class="layui-input">
+                <select name="modelNameId" lay-verify="required">
+                    <option value="">请选择型号</option>
+                    {foreach $modelNameList as $key => $val}
+                    <option value="{$val.id}">{$val.model_name}</option>
+                    {/foreach}
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">规格</label>
+            <div class="layui-input-block" style="display: flex">
+                <input type="text" name="size_height" required  lay-verify="required" placeholder="长" autocomplete="off" class="layui-input">
+                <span style="margin: 0 5px; line-height: 38px;font-weight: bold">×</span>
+                <input type="text" name="size_width" required  lay-verify="required" placeholder="宽" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">主线直径数</label>
+            <div class="layui-input-block">
+                <input type="text" name="size_number" required  lay-verify="required" placeholder="主线直径数量" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">主线直径值</label>
+            <div class="layui-input-block">
+                <input type="text" name="size_value" required  lay-verify="required" placeholder="主线直径值" autocomplete="off" class="layui-input">
             </div>
         </div>
         <div class="layui-form-item">
@@ -85,33 +118,21 @@
     layui.use(['layer', 'form', 'laypage'], function(){
         let layer = layui.layer, form = layui.form, $ = layui.$, laypage = layui.laypage;
 
-        laypage.render({
-            elem: 'page'
-            ,count: {$count}
-            ,limit: {$limit}
-            ,curr: {$page}
-            ,jump: function(obj, first) {
-                if(!first){
-                    window.location.href = "/admin/index?page=" + obj.curr + "&limit=" + obj.limit
-                }
-            }
-        });
-
         $('#add').on('click', function(){
             let element = $('.alertBox').html();
             layer.open({
-                title: "型号名称",
+                title: "添加规格信息",
                 type: 1,
                 skin: 'layui-layer-demo', //样式类名
                 closeBtn: 1,
-                area: ['500px', '300px'],
                 anim: 2,
                 shadeClose: false,
+                area: ['500px', '400px'],
                 content: element,
                 success: function() {
                     form.render()
                     form.on('submit(submit)', function(obj) {
-                        $.post('/admin/model/addModelName', obj.field, function(resp){
+                        $.post('/admin/size/addSize', obj.field, function(resp){
                             if (resp.code != 0) {
                                 layer.msg(resp.errors, {icon: 5})
                                 return
@@ -129,12 +150,11 @@
 
         $('.edit').on('click', function() {
             let id = $(this).attr('value')
-            let nameId = $(this).attr('nameId')
-            let model_name = $(this).attr('model_name')
+            let name = $(this).attr('name')
             let element = $('.alertBox').html();
 
             layer.open({
-                title: "修改型号信息",
+                title: "修改名称",
                 type: 1,
                 skin: 'layui-layer-demo', //样式类名
                 closeBtn: 1,
@@ -142,15 +162,12 @@
                 shadeClose: false,
                 content: element,
                 success: function() {
-                    $('.layui-layer-content').find('.layui-form').attr('lay-filter', "editForm")
-                    form.val("editForm", {
-                        "name": nameId,
-                        "model_name": model_name
-                    })
                     form.render()
+                    $('.layui-layer-content').find('input[name="name"]').val(name)
+
                     form.on('submit(submit)', function(obj) {
                         obj.field.id = id
-                        $.post('/admin/model/editModelName', obj.field, function(resp){
+                        $.post('/admin/editName', obj.field, function(resp){
                             if (resp.code != 0) {
                                 layer.msg(resp.errors, {icon: 5})
                                 return

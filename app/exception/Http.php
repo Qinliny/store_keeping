@@ -20,7 +20,7 @@ class Http extends Handle
         if ($e instanceof HttpException && $request->isAjax()) {
             failedAjax($e->getStatusCode(), $e->getMessage());
         } else {
-
+            dd($e);
             abort(500, "服务器出现异常");
         }
 

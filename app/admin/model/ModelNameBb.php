@@ -35,4 +35,11 @@ class ModelNameBb
                 'page'      =>  $page
             ]);
     }
+
+    public static function updateModelNameById($id, $nameId, $modelName) {
+        return Db::table(self::$table)->where('id', $id)->update([
+            'nameId'    =>  $nameId,
+            'model_name'    =>  $modelName
+        ]);
+    }
 }
