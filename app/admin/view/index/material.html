@@ -164,9 +164,58 @@
 
         $('.edit').on('click', function() {
             let id = $(this).attr('value')
-            let nameId = $(this).attr('nameId')
-            let model_name = $(this).attr('model_name')
             let element = $('.alertBox').html();
+            let loading = layer.load(1, {
+                shade: [0.3,'#000'] //0.1透明度的白色背景
+            });
+            $.post('/admin/material/getMaterialInfo', {'id': id}, function (resp) {
+                layer.close(loading)
+                if (resp.code == 0) {
+                    let data = resp.data
+                    getModelList(data.nameId)
+                    getSizeList(data.nameId, data.modelId)
+
+                    layer.open({
+                        title: "修改材料信息",
+                        type: 1,
+                        skin: 'layui-layer-demo', //样式类名
+                        closeBtn: 1,
+                        anim: 2,
+                        area: ['500px', '580px'],
+                        shadeClose: false,
+                        content: element,
+                        success: function() {
+                            $('.layui-layer-content').find('.layui-form').attr('lay-filter', "editForm")
+                            form.val("editForm", {
+                                "nameId": data.nameId,
+                                "modelId": data.modelId,
+                                "sizeId": data.sizeId,
+                                "material_name": data.material_name,
+                                "material_price": data.material_price,
+                                "material_dosage": data.material_dosage,
+                                "total": data.total
+                            })
+                            form.render()
+                            form.on('submit(submit)', function(obj) {
+                                obj.field.id = id
+                                $.post('/admin/model/editModelName', obj.field, function(resp){
+                                    if (resp.code != 0) {
+                                        layer.msg(resp.errors, {icon: 5})
+                                        return
+                                    } else {
+                                        layer.closeAll()
+                                        layer.msg("修改成功", {time: 1500, end: function(){
+                                                location.reload();
+                                            }});
+                                    }
+                                });
+                            })
+                        }
+                    });
+                }
+            })
+            return
+
             layer.open({
                 title: "修改材料信息",
                 type: 1,
@@ -203,6 +252,10 @@
 
         form.on('select(name)', function(data){
             let nameId = data.value
+            getModelList(nameId)
+        });
+
+        function getModelList(nameId) {
             $('select[name="modelNameId"]').empty()
             $('select[name="sizeId"]').empty()
             let loading = layer.load(1, {
@@ -230,11 +283,15 @@
                     layer.close(loading)
                 }
             })
-        });
+        }
 
         form.on('select(model)', function(data){
-            let nameId = $('select[name="name"]').val()
+            let nameId = $('select[name="nameId"]').val()
             let modelId = data.value
+            getSizeList(nameId, modelId)
+        });
+
+        function getSizeList(nameId, modelId) {
             $('select[name="sizeId"]').empty()
             let loading = layer.load(1, {
                 shade: [0.3,'#000'] //0.1透明度的白色背景
@@ -253,7 +310,7 @@
                     layer.close(loading)
                 }
             })
-        });
+        }
     });
 </script>
 {/block}

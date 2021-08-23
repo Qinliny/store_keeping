@@ -24,3 +24,4 @@ Route::post("/size/getSizeList", "IndexController/getSizeList");
 // 材料管理
 Route::get("/material", "IndexController/material");
 Route::post("/material/addMaterial", "IndexController/addMaterial");
+Route::post("/material/getMaterialInfo", "IndexController/getMaterialInfo");

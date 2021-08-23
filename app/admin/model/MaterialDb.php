@@ -38,4 +38,8 @@ class MaterialDb
     public static function getMaterialByCondition($condition) {
         return Db::table(self::$table)->where($condition)->select();
     }
+
+    public static function findMaterialInfoByCondition($condition) {
+        return Db::table(self::$table)->where($condition)->find();
+    }
 }

@@ -388,4 +388,14 @@ class IndexController extends BaseController
         MaterialDb::saveMaterial($param);
         successAjax("添加成功");
     }
+
+    public function getMaterialInfo() {
+        $id = request()->post('id');
+        // 判断数据是否存在
+        $info = MaterialDb::findMaterialInfoByCondition(['id'=>$id]);
+        if (empty($info)) {
+            failedAjax(__LINE__, "数据不存在");
+        }
+        successAjax("获取成功", $info);
+    }
 }
