@@ -86,15 +86,13 @@
                 </el-form-item>
                 <el-form-item label="利润">
                     <el-input v-model="data.profit"
-                              onkeyup="this.data.profit = this.data.profit.replace(/[^\d.]/g,'');"
-                              :input="changeCost"
+                              @input="changeCost"
                               placeholder="0%" style="width: calc(95% - 40px)"></el-input> %
                 </el-form-item>
                 <el-form-item label="单价">
                     <el-input v-model="data.price" placeholder="" :disabled="true"></el-input>
                 </el-form-item>
                 <el-form-item class="btns">
-                    <el-button type="primary" @click="">重新计算</el-button>
                     <el-button>保存数据</el-button>
                 </el-form-item>
             </el-form>
@@ -124,7 +122,9 @@
                 profit: "0",
                 price: "0/米"
             },
-            tableList: []
+            tableList: [],
+            cost: 0,
+            price: 0
         },
         methods: {
             getModel: function(value) {
@@ -135,6 +135,12 @@
                 this.loading = true
                 this.form.modelId = ""
                 this.form.sizeId = ""
+                this.tableList = [];
+                this.data = {
+                        cost: "0/米",
+                        profit: "0",
+                        price: "0/米"
+                }
                 $.post('/home/getModelList', {nameId: value}, function(resp) {
                     if (resp.code == 0) {
                         _this.loading = false
@@ -149,6 +155,12 @@
                 this.sizeList = []
                 this.form.sizeId = ""
                 this.loading = true
+                this.tableList = [];
+                this.data = {
+                    cost: "0/米",
+                    profit: "0",
+                    price: "0/米"
+                }
                 $.post('/home/getSizeList', {modelId: value, nameId: this.form.nameId}, function(resp) {
                     if (resp.code == 0) {
                         _this.loading = false
@@ -169,19 +181,49 @@
                             cost += parseFloat(val.total)
                         })
                         let sum = cost / 1000
-                        _this.data.cost = sum.toFixed(2) + "/米";
-                        _this.data.price = sum.toFixed(2) + "/米";
+                        _this.data.cost = sum.toFixed(3) + "/米";
+                        _this.cost = sum.toFixed(3)
+                        _this.data.price = sum.toFixed(3) + "/米";
+                        _this.price = sum.toFixed(3)
                     }
                     _this.loading = false
                 })
             },
             changeCost: function(value) {
-                cnsole.log(value)
+                if (value == "") {
+                    return false;
+                }
+                if (this.isNumber(value) == false || value > 100 || value < 0) {
+                    this.$message({
+                        message: '请输入0-100的数据字',
+                        type: 'warning'
+                    });
+                    this.data.profit = 0
+                    return false;
+                }
+
+                let changeCost = (parseFloat(this.cost) * (value / 100))
+                let sum = changeCost + parseFloat(this.cost)
+                this.data.price = sum.toFixed(3) + "/米"
+            },
+            isNumber: function(value) {
+                var patrn = /^(-)?\d+(\.\d+)?$/;
+                if (patrn.exec(value) == null || value == "") {
+                     return false
+                } else {
+                     return true
+                }
+            },
+            saveData() {
+
             }
         },
         filters: {
             getSize(value) {
                 return value.size_height + "×" + value.size_width
+            },
+            addMi(value) {
+                return value + "/米"
             }
         }
     })
