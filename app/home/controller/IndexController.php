@@ -4,6 +4,7 @@
 namespace app\home\controller;
 
 
+use app\admin\model\MaterialDb;
 use app\admin\model\ModelNameBb;
 use app\admin\model\NameDb;
 use app\admin\model\SizeDb;
@@ -51,5 +52,18 @@ class IndexController extends BaseController
 
         $sizeList = SizeDb::getSizeListByNameIdAndModelId($nameId, $modelId);
         successAjax("获取成功", $sizeList);
+    }
+
+    public function getMaterial() {
+        $param = request()->post();
+
+        $condition = [
+            'nameId'    =>  $param['nameId'],
+            'modelId'   =>  $param['modelId'],
+            'sizeId'   =>  $param['sizeId'],
+        ];
+
+        $list = MaterialDb::getMaterialByCondition($condition);
+        successAjax("获取成功", $list);
     }
 }

@@ -67,28 +67,31 @@
                     </el-select>
                 </el-form-item>
                 <el-form-item label="规格">
-                    <el-select v-model="form.sizeId" placeholder="请选择规格" :disabled="sizeSelect">
+                    <el-select v-model="form.sizeId" placeholder="请选择规格" :disabled="sizeSelect" @change="getMaterial">
                         <el-option v-for="item in sizeList" :label="item | getSize" :value="item.id"></el-option>
                     </el-select>
                 </el-form-item>
             </el-form>
 
-            <el-table  border style="width: 100%">
-                <el-table-column prop="name" label="材料名称"></el-table-column>
-                <el-table-column prop="name" label="材料单价（元/kg）"></el-table-column>
-                <el-table-column prop="name" label="材料用量（kg/千米）"></el-table-column>
-                <el-table-column prop="name" label="小计（元/千米）"></el-table-column>
+            <el-table :data="tableList" border style="width: 100%">
+                <el-table-column prop="material_name" label="材料名称"></el-table-column>
+                <el-table-column prop="material_price" label="材料单价（元/kg）"></el-table-column>
+                <el-table-column prop="material_dosage" label="材料用量（kg/千米）"></el-table-column>
+                <el-table-column prop="total" label="小计（元/千米）"></el-table-column>
             </el-table>
 
-            <el-form class="bottom-form" style="margin-top: 15px">
+            <el-form class="bottom-form" ref="data" :model="data" style="margin-top: 15px">
                 <el-form-item label="成本">
-                    <el-input v-model="input" placeholder="" :disabled="true"></el-input>
+                    <el-input v-model="data.cost" placeholder="" :disabled="true"></el-input>
                 </el-form-item>
                 <el-form-item label="利润">
-                    <el-input v-model="input" placeholder="0%"></el-input>
+                    <el-input v-model="data.profit"
+                              onkeyup="this.data.profit = this.data.profit.replace(/[^\d.]/g,'');"
+                              :input="changeCost"
+                              placeholder="0%" style="width: calc(95% - 40px)"></el-input> %
                 </el-form-item>
                 <el-form-item label="单价">
-                    <el-input v-model="input" placeholder="" :disabled="true"></el-input>
+                    <el-input v-model="data.price" placeholder="" :disabled="true"></el-input>
                 </el-form-item>
                 <el-form-item class="btns">
                     <el-button type="primary" @click="">重新计算</el-button>
@@ -115,8 +118,13 @@
             modelList: [],
             sizeSelect: true,
             sizeList: [],
-            input: "",
-            loading: false
+            loading: false,
+            data: {
+                cost: "0/米",
+                profit: "0",
+                price: "0/米"
+            },
+            tableList: []
         },
         methods: {
             getModel: function(value) {
@@ -148,11 +156,31 @@
                         _this.sizeList = resp.data
                     }
                 })
+            },
+            getMaterial: function(value) {
+                this.loading = true
+                let _this = this
+                $.post('/home/getMaterial', this.form, function(resp) {
+                    if (resp.code == 0) {
+                        _this.tableList = resp.data
+                        let cost = 0;
+                        // 计算成本利润
+                        resp.data.forEach(function(val, key) {
+                            cost += parseFloat(val.total)
+                        })
+                        let sum = cost / 1000
+                        _this.data.cost = sum.toFixed(2) + "/米";
+                        _this.data.price = sum.toFixed(2) + "/米";
+                    }
+                    _this.loading = false
+                })
+            },
+            changeCost: function(value) {
+                cnsole.log(value)
             }
         },
         filters: {
             getSize(value) {
-                console.log(1)
                 return value.size_height + "×" + value.size_width
             }
         }

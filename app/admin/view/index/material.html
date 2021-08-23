@@ -1,21 +1,21 @@
 {extend name="common/public" /}
 
 {block name="title"}
-型号管理
+材料管理
 {/block}
 
 
 {block name="content"}
 <span class="layui-breadcrumb">
   <a href="">后台管理系统</a>
-  <a><cite>型号管理</cite></a>
+  <a><cite>材料管理</cite></a>
 </span>
 
 <div class="content" style="margin-top: 20px">
     <div class="layui-card">
         <div class="layui-card-header">
             <button type="button" class="layui-btn layui-btn-sm" id="add">
-                添加型号
+                添加材料
             </button>
         </div>
         <div class="layui-card-body">
@@ -24,21 +24,31 @@
                 <tr>
                     <th>序号</th>
                     <th>名称</th>
-                    <th>型号名称</th>
+                    <th>型号</th>
+                    <th>规格</th>
+                    <th>材料名称</th>
+                    <th>材料单价（元/kg）</th>
+                    <th>材料用量（kg/千米）</th>
+                    <th>小计（元/千米）</th>
                     <th>添加时间</th>
                     <th>操作</th>
                 </tr>
                 </thead>
                 <tbody>
-                {foreach $list as $key => $value}
+                {foreach $list as $key => $val}
                 <tr>
-                    <td>{$key+1}</td>
-                    <td>{$value.name}</td>
-                    <td>{$value.model_name}</td>
-                    <td>{$value.create_time}</td>
+                    <td>{$key + 1}</td>
+                    <td>{$val.name}</td>
+                    <td>{$val.model_name}</td>
+                    <td>{$val.size_height}×{$val.size_width}</td>
+                    <td>{$val.material_name}</td>
+                    <td>{$val.material_price}</td>
+                    <td>{$val.material_dosage}</td>
+                    <td>{$val.total}</td>
+                    <td>{$val.create_time}</td>
                     <td>
                         <div class="layui-btn-group">
-                            <button type="button" class="layui-btn layui-btn-sm edit" value="{$value.id}" model_name="{$value.model_name}" nameId="{$value.nameId}">编辑</button>
+                            <button type="button" class="layui-btn layui-btn-sm edit" value="{$val.id}">编辑</button>
                             <button type="button" class="layui-btn layui-btn-sm layui-btn-danger">删除</button>
                         </div>
                     </td>
@@ -57,8 +67,7 @@
         <div class="layui-form-item">
             <label class="layui-form-label">名称</label>
             <div class="layui-input-block">
-                <select name="name" lay-verify="required">
-                    <option value="">请选择材料名称</option>
+                <select name="nameId" lay-verify="required" lay-filter="name">
                     {foreach $nameList as $key => $val}
                     <option value="{$val.id}">{$val.name}</option>
                     {/foreach}
@@ -66,9 +75,47 @@
             </div>
         </div>
         <div class="layui-form-item">
-            <label class="layui-form-label">型号名称</label>
+            <label class="layui-form-label">型号</label>
             <div class="layui-input-block">
-                <input type="text" name="model_name" required  lay-verify="required" placeholder="请输入名称" autocomplete="off" class="layui-input">
+                <select name="modelId" lay-verify="required" lay-filter="model">
+                    {foreach $modelNameList as $key => $val}
+                    <option value="{$val.id}">{$val.model_name}</option>
+                    {/foreach}
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">规格</label>
+            <div class="layui-input-block">
+                <select name="sizeId" lay-verify="required">
+                    {foreach $sizeList as $key => $val}
+                    <option value="{$val.id}">{$val.size_height}×{$val.size_width}</option>
+                    {/foreach}
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">材料名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="material_name" required  lay-verify="required" placeholder="材料名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">材料单价（元/kg）</label>
+            <div class="layui-input-block">
+                <input type="text" name="material_price" required  lay-verify="required" placeholder="材料单价（元/kg）" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">材料用量（kg/千米）</label>
+            <div class="layui-input-block">
+                <input type="text" name="material_dosage" required  lay-verify="required" placeholder="材料用量（kg/千米）" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">小计（元/千米）</label>
+            <div class="layui-input-block">
+                <input type="text" name="total" required  lay-verify="required" placeholder="小计（元/千米）" autocomplete="off" class="layui-input">
             </div>
         </div>
         <div class="layui-form-item">
@@ -84,34 +131,22 @@
 <script>
     layui.use(['layer', 'form', 'laypage'], function(){
         let layer = layui.layer, form = layui.form, $ = layui.$, laypage = layui.laypage;
-
-        laypage.render({
-            elem: 'page'
-            ,count: {$count}
-            ,limit: {$limit}
-            ,curr: {$page}
-            ,jump: function(obj, first) {
-                if(!first){
-                    window.location.href = "/admin/index?page=" + obj.curr + "&limit=" + obj.limit
-                }
-            }
-        });
-
+        
         $('#add').on('click', function(){
             let element = $('.alertBox').html();
             layer.open({
-                title: "型号名称",
+                title: "添加材料",
                 type: 1,
                 skin: 'layui-layer-demo', //样式类名
                 closeBtn: 1,
-                area: ['500px', '300px'],
+                area: ['500px', '580px'],
                 anim: 2,
                 shadeClose: false,
                 content: element,
                 success: function() {
                     form.render()
                     form.on('submit(submit)', function(obj) {
-                        $.post('/admin/model/addModelName', obj.field, function(resp){
+                        $.post('/admin/material/addMaterial', obj.field, function(resp){
                             if (resp.code != 0) {
                                 layer.msg(resp.errors, {icon: 5})
                                 return
@@ -165,6 +200,60 @@
                 }
             });
         })
+
+        form.on('select(name)', function(data){
+            let nameId = data.value
+            $('select[name="modelNameId"]').empty()
+            $('select[name="sizeId"]').empty()
+            let loading = layer.load(1, {
+                shade: [0.3,'#000'] //0.1透明度的白色背景
+            });
+            $.post('/admin/model/getModelList', {nameId: nameId}, function (resp) {
+                if (resp.code == 0) {
+                    let modelElement = "";
+                    let sizeElement = ""
+                    $.each(resp.data.modelList, function(key, val) {
+                        if (key == 0) {
+                            modelElement += '<option value="'+val.id+'" selected>'+val.model_name+'</option>'
+                        }
+                        modelElement += '<option value="'+val.id+'">'+val.model_name+'</option>'
+                    })
+                    $.each(resp.data.sizeList, function(key, val) {
+                        if (key == 0) {
+                            sizeElement += '<option value="'+val.id+'" selected>'+val.size_height + "×" + val.size_width +'</option>'
+                        }
+                        sizeElement += '<option value="'+val.id+'">'+val.size_height + "×" + val.size_width +'</option>'
+                    })
+                    $('select[name="modelNameId"]').append(modelElement)
+                    $('select[name="sizeId"]').append(sizeElement)
+                    form.render()
+                    layer.close(loading)
+                }
+            })
+        });
+
+        form.on('select(model)', function(data){
+            let nameId = $('select[name="name"]').val()
+            let modelId = data.value
+            $('select[name="sizeId"]').empty()
+            let loading = layer.load(1, {
+                shade: [0.3,'#000'] //0.1透明度的白色背景
+            });
+            $.post('/admin/size/getSizeList', {nameId: nameId, modelId: modelId}, function (resp) {
+                if (resp.code == 0) {
+                    let sizeElement = ""
+                    $.each(resp.data.sizeList, function(key, val) {
+                        if (key == 0) {
+                            sizeElement += '<option value="'+val.id+'" selected>'+val.size_height + "×" + val.size_width +'</option>'
+                        }
+                        sizeElement += '<option value="'+val.id+'">'+val.size_height + "×" + val.size_width +'</option>'
+                    })
+                    $('select[name="sizeId"]').append(sizeElement)
+                    form.render()
+                    layer.close(loading)
+                }
+            })
+        });
 
     });
 </script>

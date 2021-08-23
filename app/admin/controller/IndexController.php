@@ -4,6 +4,7 @@
 namespace app\admin\controller;
 
 
+use app\admin\model\MaterialDb;
 use app\admin\model\ModelNameBb;
 use app\admin\model\NameDb;
 use app\admin\model\SizeDb;
@@ -133,6 +134,22 @@ class IndexController extends BaseController
         successAjax("修改成功");
     }
 
+    public function getModelList() {
+        $nameId = request()->post('nameId');
+        // 查询数据是否存在
+        $info = ModelNameBb::findModelNameById($nameId);
+        if (empty($info)) {
+            failedAjax(__LINE__, "数据不存在");
+        }
+        $modelList = ModelNameBb::getModelListByNameId($nameId);
+        $modelId = null;
+        if (!empty($modelList)) {
+            $modelId = $modelList[0]['id'];
+        }
+        $sizeList = SizeDb::getSizeListByNameIdAndModelId($nameId, $modelId);
+        successAjax("获取成功", ['modelList'=>$modelList, 'sizeList'=>$sizeList]);
+    }
+
     public function size() {
         $param = request()->get();
         $page = isset($param['page']) && $param['page'] > 0 ? $param['page'] : 1;
@@ -214,6 +231,26 @@ class IndexController extends BaseController
         successAjax("获取成功", $info);
     }
 
+    public function getSizeList() {
+        $nameId =  request()->post('nameId');
+        $modelId = request()->post('modelId');
+
+        // 查询名称是否存在
+        $queryInfo = NameDb::findNameById($nameId);
+        if (empty($queryInfo)) {
+            failedAjax(__LINE__, "名称不存在");
+        }
+
+        // 查询型号是否存在
+        $info = ModelNameBb::findModelNameById($modelId);
+        if (empty($info)) {
+            failedAjax(__LINE__, "型号数据不存在");
+        }
+
+        $sizeList = SizeDb::getSizeListByNameIdAndModelId($nameId, $modelId);
+        successAjax("获取成功", ['sizeList'=>$sizeList]);
+    }
+
     public function editSize() {
         $param = request()->post();
         // 校验数据
@@ -277,21 +314,78 @@ class IndexController extends BaseController
         $limit = isset($param['limit']) && $param['limit'] > 0 ? $param['limit'] : 15;
         // 获取名称列表
         $nameList = NameDb::getNameList(1, 1000);
-
+        $nameId = $modelId = null;
+        if (!empty($nameList)) {
+            $nameId = $nameList->items()[0]['id'];
+        }
         // 获取型号列表
-        $modelNameList = ModelNameBb::getModelNameList(1, 1000);
+        $modelNameList = ModelNameBb::getModelListByNameId($nameId);
+        if (!empty($modelNameList)) {
+            $modelId = $modelNameList[0]['id'];
+        }
+        // 获取规格
+        $sizeList = SizeDb::getSizeListByNameIdAndModelId($nameId, $modelId);
 
-        $list = SizeDb::getSizeList($page, $limit);
-
+        $list = MaterialDb::getMaterialList($page, $limit);
         View::assign([
             'list'  =>  $list->items(),
             'count' =>  $list->total(),
             'page'  =>  $page,
             'limit' =>  $limit,
-            'item'  =>  'size',
-            'modelNameList' =>  $modelNameList->items(),
-            'nameList'  =>  $nameList->items()
+            'item'  =>  'material',
+            'modelNameList' =>  $modelNameList,
+            'nameList'  =>  $nameList->items(),
+            'sizeList'  =>  $sizeList
         ]);
         return view('index/material');
+    }
+
+    public function addMaterial() {
+        $param = request()->post();
+        $this->validate($param, [
+            'nameId'    =>  'require|integer',
+            'modelId'   =>  'require|integer',
+            'sizeId'    =>  'require|integer',
+            'material_name' =>  'require|max:20',
+            'material_price'    =>  'require|float',
+            'material_dosage'    =>  'require|float',
+            'total'    =>  'require|float',
+        ], [
+            'nameId.require'    =>  "请选择名称",
+            'nameId.integer'    =>  "请选择名称",
+            'modelId.require'    =>  "请选择型号",
+            'modelId.integer'    =>  "请选择型号",
+            'sizeId.require'    =>  "请选择规格",
+            'sizeId.integer'    =>  "请选择规格",
+            'material_name.require' =>  '请输入材料名称',
+            'material_name.max' =>  '材料名称长度不能超过20',
+            'material_price.require'    =>  '请输入材料单价',
+            'material_price.float'  =>  '材料单价必须为整数或者小数',
+            'material_dosage.require'   =>  '请输入材料用量',
+            'material_dosage.float' =>  '材料用量必须为整数或者小数',
+            'total.require'   =>  '请输入小计',
+            'total.float' =>  '小计必须为整数或者小数'
+        ]);
+
+        // 查询名称是否存在
+        $queryInfo = NameDb::findNameById($param['nameId']);
+        if (empty($queryInfo)) {
+            failedAjax(__LINE__, "名称不存在");
+        }
+
+        // 查询型号是否存在
+        $info = ModelNameBb::findModelNameById($param['modelId']);
+        if (empty($info)) {
+            failedAjax(__LINE__, "型号数据不存在");
+        }
+
+        // 判断数据是否存在
+        $sizeInfo = SizeDb::getSizeInfoById($param['sizeId']);
+        if (empty($sizeInfo)) {
+            failedAjax(__LINE__, "规格数据不存在");
+        }
+
+        MaterialDb::saveMaterial($param);
+        successAjax("添加成功");
     }
 }
