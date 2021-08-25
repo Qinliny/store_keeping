@@ -16,7 +16,7 @@ class IndexController extends BaseController
     public function index() {
         $nameList = NameDb::getNameList(1, 1000);
         $modelList = [];
-        if (!empty($nameList)) {
+        if (!empty($nameList->items())) {
             $modelList = ModelNameBb::getModelListByNameId($nameList[0]['id']);
         }
         return view('index/index', ['nameList'=>$nameList->items(), 'modelList'=>$modelList]);
