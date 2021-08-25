@@ -1,0 +1,75 @@
+{extend name="common/public" /}
+
+{block name="title"}
+数据管理
+{/block}
+
+
+{block name="content"}
+<span class="layui-breadcrumb">
+  <a href="">后台管理系统</a>
+  <a><cite>数据管理</cite></a>
+</span>
+
+<div class="content" style="margin-top: 20px">
+    <div class="layui-card">
+        <div class="layui-card-header">
+            数据列表
+        </div>
+        <div class="layui-card-body">
+            <table class="layui-table">
+                <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>名称</th>
+                    <th>型号</th>
+                    <th>规格</th>
+                    <th>成本</th>
+                    <th>利润</th>
+                    <th>单价</th>
+                    <th>保存时间</th>
+                </tr>
+                </thead>
+                <tbody>
+                {foreach $list as $key => $value}
+                <tr>
+                    <td>{$key+1}</td>
+                    <td>{$value.name}</td>
+                    <td>{$value.model_name}</td>
+                    <td>{$value.size_height}×{$value.size_width}</td>
+                    <td>{$value.cost}/米</td>
+                    <td>{$value.profit}%</td>
+                    <td>{$value.price}/米</td>
+                    <td>{$value.create_time}</td>
+                </tr>
+                {/foreach}
+                </tbody>
+            </table>
+            <div id="page"></div>
+        </div>
+    </div>
+</div>
+
+
+{/block}
+
+{block name="js"}
+<script>
+    layui.use(['layer', 'form', 'laypage'], function(){
+        let layer = layui.layer, form = layui.form, $ = layui.$, laypage = layui.laypage;
+
+        laypage.render({
+            elem: 'page'
+            ,count: {$count}
+            ,limit: {$limit}
+            ,curr: {$page}
+            ,jump: function(obj, first) {
+                if(!first){
+                    window.location.href = "/admin/data?page=" + obj.curr + "&limit=" + obj.limit
+                }
+            }
+        });
+
+    });
+</script>
+{/block}

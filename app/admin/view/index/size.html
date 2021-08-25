@@ -118,6 +118,18 @@
     layui.use(['layer', 'form', 'laypage'], function(){
         let layer = layui.layer, form = layui.form, $ = layui.$, laypage = layui.laypage;
 
+        laypage.render({
+            elem: 'page'
+            ,count: {$count}
+            ,limit: {$limit}
+            ,curr: {$page}
+            ,jump: function(obj, first) {
+                if(!first){
+                    window.location.href = "/admin/size?page=" + obj.curr + "&limit=" + obj.limit
+                }
+            }
+        });
+
         $('#add').on('click', function(){
             let element = $('.alertBox').html();
             layer.open({

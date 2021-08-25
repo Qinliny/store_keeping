@@ -4,6 +4,7 @@
 namespace app\home\controller;
 
 
+use app\admin\model\DataDb;
 use app\admin\model\MaterialDb;
 use app\admin\model\ModelNameBb;
 use app\admin\model\NameDb;
@@ -65,5 +66,18 @@ class IndexController extends BaseController
 
         $list = MaterialDb::getMaterialByCondition($condition);
         successAjax("获取成功", $list);
+    }
+
+    public function saveData() {
+        $param = request()->post();
+        $installData = [
+            'nameId'    =>  $param['nameId'],
+            'modelId'   =>  $param['modelId'],
+            'sizeId'   =>  $param['sizeId'],
+            'profit'    =>  $param['profit'],
+            'create_time'   =>  thisTime()
+        ];
+        DataDb::saveData($installData);
+        successAjax("保存成功");
     }
 }
