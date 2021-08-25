@@ -28,7 +28,7 @@ class DataDb
                 $cost = 0;
                 // 计算成本
                 foreach ($materialList as $key => $val) {
-                    $cost += $val['total'];
+                    $cost += (float)$val['total'];
                 }
                 $costNum = $cost / 1000;
                 $obj['cost'] = round($costNum,  3);
