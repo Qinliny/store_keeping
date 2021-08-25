@@ -56,4 +56,14 @@ class NameDb
     public static function updateNameById($id, $name) {
         return Db::table(self::$table)->where('id', $id)->update(['name'=>$name]);
     }
+
+    public static function deleteNameById($id) {
+        return Db::transaction(function () use ($id) {
+            Db::table(self::$table)->where('id', $id)->delete();
+            Db::table('model_name')->where('nameId', $id)->delete();
+            Db::table('size')->where('nameId', $id)->delete();
+            Db::table('material')->where('nameId', $id)->delete();
+            Db::table('data')->where('nameId', $id)->delete();
+        });
+    }
 }

@@ -49,7 +49,7 @@
                     <td>
                         <div class="layui-btn-group">
                             <button type="button" class="layui-btn layui-btn-sm edit" value="{$val.id}">编辑</button>
-                            <button type="button" class="layui-btn layui-btn-sm layui-btn-danger">删除</button>
+                            <button type="button" class="layui-btn layui-btn-sm layui-btn-danger" onclick="deleteData({$val.id})">删除</button>
                         </div>
                     </td>
                 </tr>
@@ -246,14 +246,16 @@
                     $.each(resp.data.modelList, function(key, val) {
                         if (key == 0) {
                             modelElement += '<option value="'+val.id+'" selected>'+val.model_name+'</option>'
+                        } else {
+                            modelElement += '<option value="'+val.id+'">'+val.model_name+'</option>'
                         }
-                        modelElement += '<option value="'+val.id+'">'+val.model_name+'</option>'
                     })
                     $.each(resp.data.sizeList, function(key, val) {
                         if (key == 0) {
                             sizeElement += '<option value="'+val.id+'" selected>'+val.size_height + "×" + val.size_width +'</option>'
+                        } else {
+                            sizeElement += '<option value="'+val.id+'">'+val.size_height + "×" + val.size_width +'</option>'
                         }
-                        sizeElement += '<option value="'+val.id+'">'+val.size_height + "×" + val.size_width +'</option>'
                     })
                     $('select[name="modelNameId"]').append(modelElement)
                     $('select[name="sizeId"]').append(sizeElement)
@@ -288,6 +290,25 @@
                     layer.close(loading)
                 }
             })
+        }
+
+        window.deleteData = function(id) {
+            layer.confirm('您确定要删除吗？', {
+                btn: ['确定','取消'] //按钮
+            }, function(){
+                $.post('/admin/material/deleteMaterial', {id: id}, function(resp){
+                    if (resp.code != 0) {
+                        layer.msg(resp.errors, {icon: 5})
+                        return
+                    } else {
+                        layer.msg("删除成功", {time: 1500, end: function(){
+                                location.reload();
+                            }});
+                    }
+                });
+            }, function(){
+                return;
+            });
         }
     });
 </script>

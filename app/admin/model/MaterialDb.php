@@ -46,4 +46,8 @@ class MaterialDb
     public static function updateMaterialById($id, $data) {
         return Db::table(self::$table)->where('id', $id)->update($data);
     }
+
+    public static function deleteMaterialById($id) {
+        return Db::table(self::$table)->where('id', $id)->delete();
+    }
 }

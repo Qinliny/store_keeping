@@ -71,6 +71,9 @@
                         <el-option v-for="item in sizeList" :label="item | getSize" :value="item.id"></el-option>
                     </el-select>
                 </el-form-item>
+                <el-form-item :label="zhuxianStr" v-if="zhuxianIsShow">
+
+                </el-form-item>
             </el-form>
 
             <el-table :data="tableList" border style="width: 100%">
@@ -124,7 +127,9 @@
             },
             tableList: [],
             cost: 0,
-            price: 0
+            price: 0,
+            zhuxianStr: "",
+            zhuxianIsShow: false
         },
         methods: {
             getModel: function(value) {
@@ -136,6 +141,7 @@
                 this.form.modelId = ""
                 this.form.sizeId = ""
                 this.tableList = [];
+                this.zhuxianIsShow = false
                 this.data = {
                         cost: "0/米",
                         profit: "0",
@@ -156,6 +162,7 @@
                 this.form.sizeId = ""
                 this.loading = true
                 this.tableList = [];
+                this.zhuxianIsShow = false
                 this.data = {
                     cost: "0/米",
                     profit: "0",
@@ -170,8 +177,15 @@
                 })
             },
             getMaterial: function(value) {
-                this.loading = true
                 let _this = this
+                this.zhuxianIsShow = false
+                this.sizeList.forEach(function (item, key) {
+                    if (item.id == value) {
+                        _this.zhuxianStr = "主线直径（"+item.size_number+"根）: "+item.size_value+""
+                        _this.zhuxianIsShow = true
+                    }
+                })
+                this.loading = true
                 $.post('/home/getMaterial', this.form, function(resp) {
                     if (resp.code == 0) {
                         _this.tableList = resp.data

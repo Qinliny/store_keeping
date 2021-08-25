@@ -9,6 +9,9 @@ use app\admin\model\MaterialDb;
 use app\admin\model\ModelNameBb;
 use app\admin\model\NameDb;
 use app\admin\model\SizeDb;
+use app\admin\model\AdminDb;
+use think\captcha\facade\Captcha;
+use think\facade\Session;
 use think\facade\View;
 
 class IndexController extends BaseController
@@ -63,6 +66,16 @@ class IndexController extends BaseController
         }
         NameDb::updateNameById($id, $name);
         successAjax("编辑名称成功");
+    }
+
+    public function delName() {
+        $id = request()->post('id');
+        $queryInfo = NameDb::findNameById($id);
+        if (empty($queryInfo)) {
+            failedAjax(__LINE__, "数据不存在");
+        }
+        NameDb::deleteNameById($id);
+        successAjax("删除成功");
     }
 
     public function model() {
@@ -138,7 +151,7 @@ class IndexController extends BaseController
     public function getModelList() {
         $nameId = request()->post('nameId');
         // 查询数据是否存在
-        $info = ModelNameBb::findModelNameById($nameId);
+        $info = NameDb::findNameById($nameId);
         if (empty($info)) {
             failedAjax(__LINE__, "数据不存在");
         }
@@ -151,6 +164,17 @@ class IndexController extends BaseController
         successAjax("获取成功", ['modelList'=>$modelList, 'sizeList'=>$sizeList]);
     }
 
+    public function deleteModel() {
+        $modelId = request()->post('modelId');
+        // 查询数据是否存在
+        $info = ModelNameBb::findModelNameById($modelId);
+        if (empty($info)) {
+            failedAjax(__LINE__, "数据不存在");
+        }
+        ModelNameBb::deleteModelById($modelId);
+        successAjax("删除成功");
+    }
+
     public function size() {
         $param = request()->get();
         $page = isset($param['page']) && $param['page'] > 0 ? $param['page'] : 1;
@@ -158,18 +182,23 @@ class IndexController extends BaseController
         // 获取名称列表
         $nameList = NameDb::getNameList(1, 1000);
 
+        $nameId = null;
+        if (!empty($nameList->items())) {
+            $nameId = $nameList->items()[0]['id'];
+        }
+
         // 获取型号列表
-        $modelNameList = ModelNameBb::getModelNameList(1, 1000);
+        $modelNameList = empty($nameId) ? [] : ModelNameBb::getModelListByNameId($nameId);
 
         $list = SizeDb::getSizeList($page, $limit);
-
         View::assign([
             'list'  =>  $list->items(),
             'count' =>  $list->total(),
             'page'  =>  $page,
             'limit' =>  $limit,
             'item'  =>  'size',
-            'modelNameList' =>  $modelNameList->items(),
+            'modelNameList' =>  $modelNameList,
+            'nameId'    =>  $nameId,
             'nameList'  =>  $nameList->items()
         ]);
         return view('index/size');
@@ -309,6 +338,17 @@ class IndexController extends BaseController
         successAjax("修改成功");
     }
 
+    public function deleteSize() {
+        $sizeId = request()->post('sizeId');
+        // 判断数据是否存在
+        $sizeInfo = SizeDb::getSizeInfoById($sizeId);
+        if (empty($sizeInfo)) {
+            failedAjax(__LINE__, "数据不存在");
+        }
+        SizeDb::deleteSizeById($sizeId);
+        successAjax("删除成功");
+    }
+
     public function material() {
         $param = request()->get();
         $page = isset($param['page']) && $param['page'] > 0 ? $param['page'] : 1;
@@ -316,12 +356,12 @@ class IndexController extends BaseController
         // 获取名称列表
         $nameList = NameDb::getNameList(1, 1000);
         $nameId = $modelId = null;
-        if (!empty($nameList)) {
+        if (!empty($nameList->items())) {
             $nameId = $nameList->items()[0]['id'];
         }
         // 获取型号列表
         $modelNameList = ModelNameBb::getModelListByNameId($nameId);
-        if (!empty($modelNameList)) {
+        if (!empty($modelNameList->toArray())) {
             $modelId = $modelNameList[0]['id'];
         }
         // 获取规格
@@ -469,6 +509,17 @@ class IndexController extends BaseController
         successAjax("修改成功");
     }
 
+    public function deleteMaterial() {
+        $id = request()->post('id');
+        // 判断数据是否存在
+        $info = MaterialDb::findMaterialInfoByCondition(['id'=>$id]);
+        if (empty($info)) {
+            failedAjax(__LINE__, "数据不存在");
+        }
+        MaterialDb::deleteMaterialById($id);
+        successAjax("删除成功");
+    }
+
     public function dataList() {
         $param = request()->get();
         $page = isset($param['page']) && $param['page'] > 0 ? $param['page'] : 1;
@@ -482,5 +533,53 @@ class IndexController extends BaseController
             'item'  =>  'data'
         ]);
         return view('/index/data');
+    }
+
+    public function login() {
+        return view('index/login');
+    }
+
+    public function checkLogin() {
+        $param = request()->post();
+
+        // 校验数据
+        $this->validate($param, [
+            'username'  =>  'require',
+            'password'  =>  'require',
+            'verifyCode'    =>  'require'
+        ], [
+            'username.require'  =>  '请输入用户名！',
+            'password.require'  =>  '请输入密码！',
+            'verifyCode'        =>  '请输入验证码！'
+        ]);
+
+        // 校验验证码
+        if (!captcha_check($param['verifyCode'])) failedAjax(__LINE__, "验证码不正确！");
+
+        $adminInfo = AdminDb::findAdminByUserName($param['username']);
+        if (empty($adminInfo)) failedAjax(__LINE__, "用户名不正确！");
+
+        if (!password_verify($param['password'], $adminInfo['password']))
+        {
+            failedAjax(__LINE__, "密码不正确！");
+        }
+
+        $info = [
+            'adminId'   =>  $adminInfo['id'],
+            'adminUserName' =>  $adminInfo['username']
+        ];
+
+        Session::set('Admin', $info);
+        return;
+    }
+
+    // 验证码
+    public function verify() {
+        return Captcha::create();
+    }
+
+    public function outlogin() {
+        session("Admin", null);
+        return redirect("/admin/login");
     }
 }

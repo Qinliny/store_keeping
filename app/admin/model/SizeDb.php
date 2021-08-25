@@ -60,4 +60,12 @@ class SizeDb
             'modelId'   =>  $modelId
         ])->select();
     }
+
+    public static function deleteSizeById($sizeId) {
+        return Db::transaction(function () use ($sizeId) {
+            Db::table(self::$table)->where('id', $sizeId)->delete();
+            Db::table('material')->where('sizeId', $sizeId)->delete();
+            Db::table('data')->where('sizeId', $sizeId)->delete();
+        });
+    }
 }

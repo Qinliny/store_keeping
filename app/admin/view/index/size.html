@@ -47,7 +47,7 @@
                     <td>
                         <div class="layui-btn-group">
                             <button type="button" class="layui-btn layui-btn-sm edit" value="{$value.id}">编辑</button>
-                            <button type="button" class="layui-btn layui-btn-sm layui-btn-danger">删除</button>
+                            <button type="button" class="layui-btn layui-btn-sm layui-btn-danger" onclick="deleteData({$value.id})">删除</button>
                         </div>
                     </td>
                 </tr>
@@ -65,10 +65,9 @@
         <div class="layui-form-item">
             <label class="layui-form-label">名称</label>
             <div class="layui-input-block">
-                <select name="nameId" lay-verify="required">
-                    <option value="">请选择材料名称</option>
+                <select name="nameId" lay-verify="required" lay-filter="name">
                     {foreach $nameList as $key => $val}
-                    <option value="{$val.id}">{$val.name}</option>
+                    <option value="{$val.id}" {if condition="$nameId == $val.id"}selected{/if}>{$val.name}</option>
                     {/foreach}
                 </select>
             </div>
@@ -210,6 +209,55 @@
                 });
             })
         })
+
+        form.on('select(name)', function(data){
+            let nameId = data.value
+            console.log(nameId
+            )
+            getModelList(nameId)
+        });
+
+        function getModelList(nameId) {
+            $('select[name="modelNameId"]').empty()
+            let loading = layer.load(1, {
+                shade: [0.3,'#000'] //0.1透明度的白色背景
+            });
+            $.post('/admin/model/getModelList', {nameId: nameId}, function (resp) {
+                if (resp.code == 0) {
+                    let modelElement = "";
+                    let sizeElement = ""
+                    $.each(resp.data.modelList, function(key, val) {
+                        if (key == 0) {
+                            modelElement += '<option value="'+val.id+'" selected>'+val.model_name+'</option>'
+                        } else {
+                            modelElement += '<option value="'+val.id+'">'+val.model_name+'</option>'
+                        }
+                    })
+                    $('select[name="modelNameId"]').append(modelElement)
+                    form.render()
+                    layer.close(loading)
+                }
+            })
+        }
+
+        window.deleteData = function(id) {
+            layer.confirm('您确定要删除吗？', {
+                btn: ['确定','取消'] //按钮
+            }, function(){
+                $.post('/admin/size/deleteSize', {sizeId: id}, function(resp){
+                    if (resp.code != 0) {
+                        layer.msg(resp.errors, {icon: 5})
+                        return
+                    } else {
+                        layer.msg("删除成功", {time: 1500, end: function(){
+                                location.reload();
+                            }});
+                    }
+                });
+            }, function(){
+                return;
+            });
+        }
 
     });
 </script>

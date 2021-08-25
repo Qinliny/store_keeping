@@ -46,4 +46,13 @@ class ModelNameBb
     public static function getModelListByNameId($nameId) {
         return Db::table(self::$table)->where('nameId', $nameId)->select();
     }
+
+    public static function deleteModelById($modelId) {
+        return Db::transaction(function () use ($modelId) {
+            Db::table('model_name')->where('id', $modelId)->delete();
+            Db::table('size')->where('modelId', $modelId)->delete();
+            Db::table('material')->where('modelId', $modelId)->delete();
+            Db::table('data')->where('modelId', $modelId)->delete();
+        });
+    }
 }
