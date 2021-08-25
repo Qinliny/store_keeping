@@ -73,8 +73,9 @@ class IndexController extends BaseController
         $installData = [
             'nameId'    =>  $param['nameId'],
             'modelId'   =>  $param['modelId'],
-            'sizeId'   =>  $param['sizeId'],
+            'sizeId'    =>  $param['sizeId'],
             'profit'    =>  $param['profit'],
+            'tableList' =>  json_encode($param['tableList']),
             'create_time'   =>  thisTime()
         ];
         DataDb::saveData($installData);

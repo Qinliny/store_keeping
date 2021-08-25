@@ -18,7 +18,7 @@ class MaterialDb
             'material_name' =>  $data['material_name'],
             'material_price'    =>  $data['material_price'],
             'material_dosage'   =>  $data['material_dosage'],
-            'total' =>  $data['total'],
+            'total' =>  round((float)$data['material_price'] * (float)$data['material_dosage'], 3),
             'create_time'   =>  thisTime()
         ]);
     }

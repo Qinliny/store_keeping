@@ -24,11 +24,7 @@ class DataDb
                 'page'       =>  $page
             ])->each(function($obj){
                 // 获取材料信息
-                $materialList = MaterialDb::getMaterialByCondition([
-                    'nameId'    =>  $obj['nameId'],
-                    'modelId'   =>  $obj['modelId'],
-                    'sizeId'    =>  $obj['sizeId']
-                ]);
+                $materialList = json_decode($obj['tableList'], true);
                 $cost = 0;
                 // 计算成本
                 foreach ($materialList as $key => $val) {

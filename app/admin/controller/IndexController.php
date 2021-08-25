@@ -390,7 +390,6 @@ class IndexController extends BaseController
             'material_name' =>  'require|max:20',
             'material_price'    =>  'require|float',
             'material_dosage'    =>  'require|float',
-            'total'    =>  'require|float',
         ], [
             'nameId.require'    =>  "请选择名称",
             'nameId.integer'    =>  "请选择名称",
@@ -403,9 +402,7 @@ class IndexController extends BaseController
             'material_price.require'    =>  '请输入材料单价',
             'material_price.float'  =>  '材料单价必须为整数或者小数',
             'material_dosage.require'   =>  '请输入材料用量',
-            'material_dosage.float' =>  '材料用量必须为整数或者小数',
-            'total.require'   =>  '请输入小计',
-            'total.float' =>  '小计必须为整数或者小数'
+            'material_dosage.float' =>  '材料用量必须为整数或者小数'
         ]);
 
         // 查询名称是否存在
@@ -451,7 +448,6 @@ class IndexController extends BaseController
             'material_name' =>  'require|max:20',
             'material_price'    =>  'require|float',
             'material_dosage'    =>  'require|float',
-            'total'    =>  'require|float',
         ], [
             'id.require'  =>  '数据异常',
             'id.integer'  =>  '数据异常',
@@ -466,9 +462,7 @@ class IndexController extends BaseController
             'material_price.require'=>  '请输入材料单价',
             'material_price.float'  =>  '材料单价必须为整数或者小数',
             'material_dosage.require'   =>  '请输入材料用量',
-            'material_dosage.float'     =>  '材料用量必须为整数或者小数',
-            'total.require'         =>  '请输入小计',
-            'total.float'            =>  '小计必须为整数或者小数'
+            'material_dosage.float'     =>  '材料用量必须为整数或者小数'
         ]);
 
         // 判断数据是否存在
@@ -503,7 +497,7 @@ class IndexController extends BaseController
             'material_name' =>  $param['material_name'],
             'material_price'    =>  $param['material_price'],
             'material_dosage'   =>  $param['material_dosage'],
-            'total' =>  $param['total']
+            'total' =>  round((float)$param['material_price'] * (float)$param['material_dosage'], 3),
         ]);
 
         successAjax("修改成功");

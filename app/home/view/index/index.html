@@ -77,10 +77,22 @@
             </el-form>
 
             <el-table :data="tableList" border style="width: 100%">
-                <el-table-column prop="material_name" label="材料名称"></el-table-column>
-                <el-table-column prop="material_price" label="材料单价（元/kg）"></el-table-column>
-                <el-table-column prop="material_dosage" label="材料用量（kg/千米）"></el-table-column>
-                <el-table-column prop="total" label="小计（元/千米）"></el-table-column>
+                <el-table-column prop="material_name" label="材料名称">
+
+                </el-table-column>
+                <el-table-column prop="material_price" label="材料单价（元/kg）">
+                    <template slot-scope="scope">
+                        <el-input v-model="scope.row.material_price" :value="scope.row.material_price" placeholder=""></el-input>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="material_dosage" label="材料用量（kg/千米）">
+                    <template slot-scope="scope">
+                        <el-input v-model="scope.row.material_dosage" :value="scope.row.material_dosage" placeholder=""></el-input>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="total" label="小计（元/千米）">
+
+                </el-table-column>
             </el-table>
 
             <el-form class="bottom-form" ref="data" :model="data" style="margin-top: 15px">
@@ -96,6 +108,7 @@
                     <el-input v-model="data.price" placeholder="" :disabled="true"></el-input>
                 </el-form-item>
                 <el-form-item class="btns">
+                    <el-button type="primary" @click="reset">重新计算</el-button>
                     <el-button @click="saveData">保存数据</el-button>
                 </el-form-item>
             </el-form>
@@ -181,8 +194,10 @@
                 this.zhuxianIsShow = false
                 this.sizeList.forEach(function (item, key) {
                     if (item.id == value) {
-                        _this.zhuxianStr = "主线直径（"+item.size_number+"根）: "+item.size_value+""
-                        _this.zhuxianIsShow = true
+                        if (item.size_number != 0) {
+                            _this.zhuxianStr = "主线直径（"+item.size_number+"根）: "+item.size_value+""
+                            _this.zhuxianIsShow = true
+                        }
                     }
                 })
                 this.loading = true
@@ -244,6 +259,7 @@
                 param.modelId = this.form.modelId
                 param.sizeId = this.form.sizeId
                 param.profit = this.data.profit
+                param.tableList = this.tableList
                 let _this = this
                 $.post('/home/saveData', param, function(resp) {
                     _this.loading = false
@@ -254,6 +270,22 @@
                         });
                     }
                 })
+            },
+            reset() {
+                let _this = this
+                let cost = 0;
+                this.tableList.forEach(function(item, key) {
+                    let floatNum = parseFloat(item.material_price) * parseFloat(item.material_dosage)
+                    _this.tableList[key].total = floatNum.toFixed(2)
+                    cost += floatNum;
+                })
+
+                // 计算成本利润
+                let sum = cost / 1000
+                _this.data.cost = sum.toFixed(3) + "/米";
+                _this.cost = sum.toFixed(3)
+                _this.data.price = sum.toFixed(3) + "/米";
+                _this.price = sum.toFixed(3)
             }
         },
         filters: {
