@@ -34,27 +34,44 @@ class IndexController extends BaseController
 
     // 添加名称
     public function addName() {
-        $name = request()->post('name');
-        if (empty($name)) {
-            failedAjax(__LINE__, "请输入名称");
-        }
+        $param = request()->post();
+        $this->validate($param, [
+            'name'      =>  'require|max:20',
+            'factor'    =>  'require|float'
+        ], [
+            'name.require'  =>  '请输入名称',
+            'name.max'      =>  '名称长度不能超过20',
+            'factor.require'    =>  '请输入系数',
+            'factor.float'      =>  '系数必须为整数或者小数',
+        ]);
         // 判断名称是否存在
-        $info = NameDb::findNameByName($name);
+        $info = NameDb::findNameByName($param);
         if (!empty($info)) {
             failedAjax(__LINE__, "名称已存在");
         }
         // 添加名称
-        NameDb::saveData($name);
+        NameDb::saveData($param['name'], $param['factor']);
         successAjax("添加名称成功");
     }
 
-    // 编辑名称页面
+    // 编辑名称
     public function editName() {
-        $name = request()->post('name');
-        $id = request()->post('id');
-        if (empty($name)) {
-            failedAjax(__LINE__, "请输入名称");
-        }
+        $param = request()->post();
+        $this->validate($param, [
+            'id'        =>  'require|integer',
+            'name'      =>  'require|max:20',
+            'factor'    =>  'require|float'
+        ], [
+            'id.require'    =>  '参数异常',
+            'id.integer'    =>  '参数异常',
+            'name.require'  =>  '请输入名称',
+            'name.max'      =>  '名称长度不能超过20',
+            'factor.require'    =>  '请输入系数',
+            'factor.float'      =>  '系数必须为整数或者小数',
+        ]);
+        $id = $param['id'];
+        $name = $param['name'];
+        $factor = $param['factor'];
         $queryInfo = NameDb::findNameById($id);
         if (empty($queryInfo)) {
             failedAjax(__LINE__, "数据不存在");
@@ -64,7 +81,7 @@ class IndexController extends BaseController
         if (!empty($queryInfo)) {
             failedAjax(__LINE__, "名称已存在");
         }
-        NameDb::updateNameById($id, $name);
+        NameDb::updateNameById($id, $name, $factor);
         successAjax("编辑名称成功");
     }
 
@@ -213,18 +230,22 @@ class IndexController extends BaseController
             'size_width'    =>   'require|float',
             'size_height'   =>  'require|float',
             'size_number'   =>  'integer',
-            'size_value'    =>  'float'
+            'size_value'    =>  'float',
+            'nullLine_number'   =>  'integer',
+            'nullLine_value'    =>  'float'
         ], [
             'nameId.require'  =>  '请选择名称',
             'nameId.integer'  =>  '请选择名称',
-            'modelNameId.require'    =>  '请选择型号',
-            'modelNameId.integer'    =>  '请选择型号',
+            'modelNameId.require'   =>  '请选择型号',
+            'modelNameId.integer'   =>  '请选择型号',
             'size_width.require'    =>  '请输入规格宽度',
-            'size_width.float'  =>  '规格宽度数值必须为整数或者小数',
-            'size_height.require'    =>  '请输入规格长度',
-            'size_height.float'  =>  '规格长度数值必须为整数或者小数',
+            'size_width.float'      =>  '规格宽度数值必须为整数或者小数',
+            'size_height.require'   =>  '请输入规格长度',
+            'size_height.float'     =>  '规格长度数值必须为整数或者小数',
             'size_number.integer'   =>  '主线直径数只能为整数',
-            'size_value.float'      =>  '主线直径值必须为整数或者小数'
+            'size_value.float'      =>  '主线直径值必须为整数或者小数',
+            'nullLine_number.integer'  =>  '零线直径数量只能为整数',
+            'nullLine_value.float'     =>  '零线直径值必须为整数或者小数'
         ]);
 
         // 查询名称是否存在
@@ -246,7 +267,9 @@ class IndexController extends BaseController
             'size_height'   =>  $param['size_height'],
             'size_width'    =>  $param['size_width'],
             'size_number'   =>  $param['size_number'],
-            'size_value'    =>  $param['size_value']
+            'size_value'    =>  $param['size_value'],
+            'nullLine_number'   =>  $param['nullLine_number'],
+            'nullLine_value'    =>  $param['nullLine_value']
         ];
         SizeDb::saveData($data);
         successAjax("添加成功");
@@ -291,7 +314,9 @@ class IndexController extends BaseController
             'size_width'    =>   'require|float',
             'size_height'   =>  'require|float',
             'size_number'   =>  'integer',
-            'size_value'    =>  'float'
+            'size_value'    =>  'float',
+            'nullLine_number'   =>  'integer',
+            'nullLine_value'    =>  'float'
         ], [
             'id.require'  =>  '数据异常',
             'id.integer'  =>  '数据异常',
@@ -304,7 +329,9 @@ class IndexController extends BaseController
             'size_height.require'    =>  '请输入规格长度',
             'size_height.float'  =>  '规格长度数值必须为整数或者小数',
             'size_number.integer'   =>  '主线直径数只能为整数',
-            'size_value.float'      =>  '主线直径值必须为整数或者小数'
+            'size_value.float'      =>  '主线直径值必须为整数或者小数',
+            'nullLine_number.integer'  =>  '零线直径数量只能为整数',
+            'nullLine_value.float'     =>  '零线直径值必须为整数或者小数'
         ]);
 
         // 判断数据是否存在
@@ -332,7 +359,9 @@ class IndexController extends BaseController
             'size_height'   =>  $param['size_height'],
             'size_width'    =>  $param['size_width'],
             'size_number'   =>  $param['size_number'],
-            'size_value'    =>  $param['size_value']
+            'size_value'    =>  $param['size_value'],
+            'nullLine_number'   =>  $param['nullLine_number'],
+            'nullLine_value'    =>  $param['nullLine_value']
         ];
         SizeDb::updateSizeDataById($param['id'], $data);
         successAjax("修改成功");

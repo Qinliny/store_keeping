@@ -13,9 +13,10 @@ class NameDb
      * @string $name         名称
      * @return int|string
      */
-    public static function saveData($name) {
+    public static function saveData($name, $factor) {
         return Db::table(self::$table)->insert([
             'name'  =>  $name,
+            'factor'    =>   $factor,
             'create_time'   =>  thisTime()
         ]);
     }
@@ -53,8 +54,8 @@ class NameDb
         ])->find();
     }
 
-    public static function updateNameById($id, $name) {
-        return Db::table(self::$table)->where('id', $id)->update(['name'=>$name]);
+    public static function updateNameById($id, $name, $factor) {
+        return Db::table(self::$table)->where('id', $id)->update(['name'=>$name, 'factor'=>$factor]);
     }
 
     public static function deleteNameById($id) {

@@ -104,6 +104,18 @@
             </div>
         </div>
         <div class="layui-form-item">
+            <label class="layui-form-label">零线直径数</label>
+            <div class="layui-input-block">
+                <input type="text" name="nullLine_number"  placeholder="零线直径数量" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">零线直径值</label>
+            <div class="layui-input-block">
+                <input type="text" name="nullLine_value" placeholder="零线直径值" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
             <div class="layui-input-block">
                 <button class="layui-btn" lay-submit lay-filter="submit">立即提交</button>
             </div>
@@ -138,7 +150,7 @@
                 closeBtn: 1,
                 anim: 2,
                 shadeClose: false,
-                area: ['500px', '400px'],
+                area: ['500px', '550px'],
                 content: element,
                 success: function() {
                     form.render()
@@ -188,7 +200,9 @@
                             "size_height": data.size_height,
                             "size_width": data.size_width,
                             "size_number": data.size_number,
-                            "size_value": data.size_value
+                            "size_value": data.size_value,
+                            "nullLine_number": data.nullLine_number,
+                            "nullLine_value": data.nullLine_value
                         })
                         form.render()
                         form.on('submit(submit)', function(obj) {

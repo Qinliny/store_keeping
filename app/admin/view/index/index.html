@@ -24,6 +24,7 @@
                     <tr>
                         <th>序号</th>
                         <th>名称</th>
+                        <th>系数</th>
                         <th>添加时间</th>
                         <th>操作</th>
                     </tr>
@@ -33,10 +34,11 @@
                 <tr>
                     <td>{$key+1}</td>
                     <td>{$value.name}</td>
+                    <td>{$value.factor}</td>
                     <td>{$value.create_time}</td>
                     <td>
                         <div class="layui-btn-group">
-                            <button type="button" class="layui-btn layui-btn-sm edit" value="{$value.id}" name="{$value.name}">编辑</button>
+                            <button type="button" class="layui-btn layui-btn-sm edit" value="{$value.id}" name="{$value.name}" factor="{$value.factor}">编辑</button>
                             <button type="button" class="layui-btn layui-btn-sm layui-btn-danger" onclick="deleteData({$value.id})">删除</button>
                         </div>
                     </td>
@@ -56,6 +58,12 @@
             <label class="layui-form-label">名称</label>
             <div class="layui-input-block">
                 <input type="text" name="name" required  lay-verify="required" placeholder="请输入名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">系数</label>
+            <div class="layui-input-block">
+                <input type="text" name="factor" required  lay-verify="required" placeholder="请输入系数，如：0.89" autocomplete="off" class="layui-input">
             </div>
         </div>
         <div class="layui-form-item">
@@ -115,6 +123,7 @@
         $('.edit').on('click', function() {
             let id = $(this).attr('value')
             let name = $(this).attr('name')
+            let factor = $(this).attr('factor')
             let element = $('.alertBox').html();
 
             layer.open({
@@ -126,8 +135,8 @@
                 shadeClose: false,
                 content: element,
                 success: function() {
-
                     $('.layui-layer-content').find('input[name="name"]').val(name)
+                    $('.layui-layer-content').find('input[name="factor"]').val(factor)
 
                     form.on('submit(submit)', function(obj) {
                         obj.field.id = id
